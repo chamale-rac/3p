@@ -1,13 +1,28 @@
 from OpenGL.GL import *
-from numpy import array, float32, uint32
+import glm
+from numpy import array, float32
 
-class Buffer(object):
+class Model(object):
     def __init__(self, data: list) -> None:
         self.vertBuffer = array(data, dtype=float32)
         
-        self.VBO = glGenBuffers(1) # Vertex Buffer Object
+        self.VBO = glGenBuffers(1) # Vertex Model Object
 
         self.VAO = glGenVertexArrays(1) # Vertex Array Object
+
+        self.position = glm.vec3(0,0,0)
+        self.rotation = glm.vec3(0,0,0)
+        self.scale = glm.vec3(1,1,1)
+
+    def getModelMatrix(self) -> glm.mat4:
+        model = glm.mat4(1.0)
+        model = glm.translate(model, self.position)
+        model = glm.rotate(model, glm.radians(self.rotation.x), glm.vec3(1,0,0))    # pitch
+        model = glm.rotate(model, glm.radians(self.rotation.y), glm.vec3(0,1,0))    # yaw
+        model = glm.rotate(model, glm.radians(self.rotation.z), glm.vec3(0,0,1))    # roll
+        model = glm.scale(model, self.scale)
+        return model
+    
 
     def render(self) -> None:
         # Where is gonna be stored the information of the vertex buffer
@@ -15,7 +30,7 @@ class Buffer(object):
         glBindVertexArray(self.VAO)
 
         # Specifying the information of the vertex buffer
-        glBufferData(GL_ARRAY_BUFFER,        # Buffer ID (VBO)
+        glBufferData(GL_ARRAY_BUFFER,        # Model ID (VBO)
                      self.vertBuffer.nbytes, # Size of the buffer in bytes
                      self.vertBuffer,        # Data to be copied to the buffer
                      GL_STATIC_DRAW)         # How the buffer is going to be used
