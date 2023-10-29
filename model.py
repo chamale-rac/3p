@@ -44,34 +44,23 @@ class Model(object):
                      self.vertBuffer,        # Data to be copied to the buffer
                      GL_STATIC_DRAW)         # How the buffer is going to be used
 
-        # Specifying the attributes of the vertex buffer
+        # Position
         glVertexAttribPointer(0,                  # Attribute index
                               3,                  # Number of elements per vertex
                               GL_FLOAT,           # Type of the elements
                               GL_FALSE,           # Normalized?
                               4 * 8,              # Stride, 3 floats, each float is 4 bytes
                               ctypes.c_void_p(0))  # Array buffer offset
-
         glEnableVertexAttribArray(0)
 
-        glVertexAttribPointer(1,                  # Attribute index
-                              3,                  # Number of elements per vertex
-                              GL_FLOAT,           # Type of the elements
-                              GL_FALSE,           # Normalized?
-                              4 * 8,              # Stride, 3 floats, each float is 4 bytes
-                              ctypes.c_void_p(4*3))  # Array buffer offset
-
+        # UVs
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+                              4 * 8, ctypes.c_void_p(4*3))
         glEnableVertexAttribArray(1)
 
-        # UVs
-
-        glVertexAttribPointer(2,                  # Attribute index
-                              2,                  # Number of elements per vertex
-                              GL_FLOAT,           # Type of the elements
-                              GL_FALSE,           # Normalized?
-                              4 * 8,              # Stride, 3 floats, each float is 4 bytes
-                              ctypes.c_void_p(4*6))
-
+        # Normals
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
+                              4 * 8, ctypes.c_void_p(4*5))
         glEnableVertexAttribArray(2)
 
         # Texture
