@@ -3,12 +3,12 @@ from pygame.locals import *
 import glm
 from model import Model
 from object import ObjectLoader
-from shaders import fragment_shader, vertex_shader
+from shaders import fragment_shader, vertex_shader, cel_fragment_shader
 
 from gl import Renderer
 
-width = 1920
-height = 1080
+width = 1080
+height = 720
 
 pygame.init()
 
@@ -22,34 +22,21 @@ renderer.setShaders(vertex_shader, fragment_shader)
 
 loader = ObjectLoader()
 
-chickenObject = loader.loadObject("./assets/models/chicken.obj")
-chickenModel = Model(chickenObject)
-loader.cleanUp()
-chickenModel.loadTexture("./assets/textures/chicken_base.png")
 
-chickenModel.position.z = -24
-chickenModel.scale = glm.vec3(2, 2, 2)
-chickenModel.rotation.y = -45
-
-renderer.sceneObjects.append(chickenModel)
-
-obeliskObject = loader.loadObject("./assets/models/obelisk.obj")
+obeliskObject = loader.loadObject("./assets/models/monkey.obj")
 obeliskModel = Model(obeliskObject)
 loader.cleanUp()
 obeliskModel.loadTexture("./assets/textures/obelisk_base.png")
 
-obeliskModel.position.z = -20
-obeliskModel.position.y = -2
-obeliskModel.rotation.x = 20
+obeliskModel.position.z = -10
+obeliskModel.position.y = 0
 obeliskModel.scale = glm.vec3(3, 3, 3)
 
 renderer.sceneObjects.append(obeliskModel)
+renderer.target = obeliskModel.position
 
-renderer.camPosition = glm.vec3(-17.5,        0.885,       -0.345)
-renderer.camRotation = glm.vec3(12.3,      -44.506,            0)
-
-pygame.mouse.set_visible(False)
-pygame.event.set_grab(True)
+# pygame.mouse.set_visible(False)
+# pygame.event.set_grab(True)
 
 isRunning = True
 while isRunning:
@@ -60,6 +47,9 @@ while isRunning:
     # Set window title to current FPS
     pygame.display.set_caption(f"FPS: {clock.get_fps():.2f}")
 
+    # update elapsedTime
+    renderer.elapsedTime += deltaTime
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             isRunning = False
@@ -67,6 +57,8 @@ while isRunning:
         if event.type == KEYDOWN and event.key == K_c and keys[K_LCTRL]:
             print(f"camPosition: {renderer.camPosition}")
             print(f"camRotation: {renderer.camRotation}")
+        if event.type == KEYDOWN and event.key == K_f:
+            renderer.toggleFillMode()
 
     if keys[K_d]:
         renderer.camPosition.x += 5 * deltaTime
@@ -81,13 +73,14 @@ while isRunning:
     if keys[K_w]:
         renderer.camPosition.z -= 5 * deltaTime
 
-    mouseX, mouseY = pygame.mouse.get_rel()
-    renderer.camRotation.y -= mouseX * deltaTime
-    renderer.camRotation.x -= mouseY * deltaTime
+    # mouseX, mouseY = pygame.mouse.get_rel()
+    # renderer.camRotation.y -= mouseX * deltaTime
+    # renderer.camRotation.x -= mouseY * deltaTime
 
     # constant rotation
     # triangleBuffer.rotation.y += 45 * deltaTime
 
+    renderer.update()
     renderer.render()
     pygame.display.flip()
 
