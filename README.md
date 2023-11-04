@@ -1,4 +1,4 @@
-# 3p 🖼️ AKA OGL1: 3D Models & Transforms
+# 3p 🖼️ Lab 4: Shaders II (Entrega dia de clase)
 
 Rasterizer using python and PyOpenGL as main library.
 
@@ -20,7 +20,9 @@ python app.py
 
 ## 🎭 Show off
 
-![image](./ss.png)
+![image](./ss1.png)
+![image](./ss2.png)
+
 
 ## 🫠 Who I am?
 
