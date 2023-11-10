@@ -9,7 +9,8 @@ class Renderer(object):
     def __init__(self, screen: Surface) -> None:
         self.screen = screen
         _, _, self.width, self.height = screen.get_rect()
-        self.clearColor = (0.0, 0.0, 0.0, 1.0)
+        self.clearColor = (0.152, 0.152, 0.152, 1.0)
+        self.lightPos = glm.vec3(0, 0, 0)
 
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
@@ -57,8 +58,14 @@ class Renderer(object):
 
     def setShaders(self, vertexShader, fragmentShader) -> None:
         if vertexShader != None and fragmentShader != None:
-            self.activeShader = compileProgram(compileShader(vertexShader, GL_VERTEX_SHADER),
-                                               compileShader(fragmentShader, GL_FRAGMENT_SHADER))
+            with open(vertexShader, 'r') as f:
+                vertex_src = f.readlines()
+
+            with open(fragmentShader, 'r') as f:
+                fragment_src = f.readlines()
+
+            self.activeShader = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER),
+                                               compileShader(fragment_src, GL_FRAGMENT_SHADER))
         else:
             self.activeShader = None
 
@@ -70,7 +77,7 @@ class Renderer(object):
 
     def render(self) -> None:
         glClearColor(*self.clearColor)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # type: ignore
 
         if self.activeShader != None:
             glUseProgram(self.activeShader)
@@ -86,13 +93,18 @@ class Renderer(object):
             if self.activeShader != None:
                 glUniformMatrix4fv(glGetUniformLocation(self.activeShader, 'modelMatrix'),
                                    1, GL_FALSE, glm.value_ptr(obj.getModelMatrix()))
-                lightPos = glm.vec3(0, 1, 0)
+
                 # send light position to shader
                 glUniform3fv(glGetUniformLocation(self.activeShader,
-                                                  'lightPos'), 1, glm.value_ptr(lightPos))
+                                                  'lightPos'), 1, glm.value_ptr(self.lightPos))
                 # send time
                 glUniform1f(glGetUniformLocation(self.activeShader,
                             'time'), self.elapsedTime)
+                # send width and height
+                glUniform1f(glGetUniformLocation(self.activeShader,
+                            'width'), self.width)
+                glUniform1f(glGetUniformLocation(self.activeShader,
+                            'height'), self.height)
                 # send view matrix
                 glUniformMatrix4fv(glGetUniformLocation(self.activeShader, 'viewMatrix'),
                                    1, GL_FALSE, glm.value_ptr(self.viewMatrix))

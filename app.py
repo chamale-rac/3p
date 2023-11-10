@@ -18,25 +18,33 @@ clock = pygame.time.Clock()
 
 renderer = Renderer(screen)
 
-renderer.setShaders(vertex_shader, fragment_shader)
+renderer.setShaders('./shaders/basicVertexShader.glsl',
+                    './shaders/basicFragmentShader.glsl')
 
 loader = ObjectLoader()
 
 
-obeliskObject = loader.loadObject("./assets/models/monkey.obj")
-obeliskModel = Model(obeliskObject)
+MococoAbyssgardObj = loader.loadObject("./assets/models/MococoAbyssgard.obj")
+MococoAbyssgardModel = Model(MococoAbyssgardObj)  # type: ignore
 loader.cleanUp()
-obeliskModel.loadTexture("./assets/textures/obelisk_base.png")
 
-obeliskModel.position.z = -10
-obeliskModel.position.y = 0
-obeliskModel.scale = glm.vec3(3, 3, 3)
+MococoAbyssgardModel.loadTexture("./assets/textures/MococoAbyssgard.png")
+MococoAbyssgardModel.position.z = -15
+MococoAbyssgardModel.position.y = -5
+MococoAbyssgardModel.scale = glm.vec3(3, 3, 3)
 
-renderer.sceneObjects.append(obeliskModel)
-renderer.target = obeliskModel.position
+renderer.sceneObjects.append(MococoAbyssgardModel)
+renderer.target.z = -15
+renderer.target.y = 0
 
-# pygame.mouse.set_visible(False)
-# pygame.event.set_grab(True)
+renderer.lightPos = glm.vec3(1052, 0, 401)
+
+pygame.mouse.set_visible(True)
+pygame.event.set_grab(False)
+
+rotationSpeed = 20
+
+autoRotate = False
 
 isRunning = True
 while isRunning:
@@ -53,32 +61,51 @@ while isRunning:
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             isRunning = False
-        # control + c then print camPosition and camRotation
-        if event.type == KEYDOWN and event.key == K_c and keys[K_LCTRL]:
-            print(f"camPosition: {renderer.camPosition}")
-            print(f"camRotation: {renderer.camRotation}")
         if event.type == KEYDOWN and event.key == K_f:
             renderer.toggleFillMode()
+        # R enable or disable auto rotation
+        if event.type == KEYDOWN and event.key == K_r:
+            autoRotate = not autoRotate
+        # Z reset light position x and y
+        if event.type == KEYDOWN and event.key == K_z:
+            renderer.lightPos.x = 1052
+            renderer.lightPos.y = 0
 
-    if keys[K_d]:
-        renderer.camPosition.x += 5 * deltaTime
+    # Change shaders based on key pressed 1, 2, 3...
+    if keys[K_1]:
+        renderer.setShaders('./shaders/basicVertexShader.glsl',
+                            './shaders/basicFragmentShader.glsl')
+    if keys[K_2]:
+        renderer.setShaders('./shaders/basicVertexShader.glsl',
+                            './shaders/partyFragmentShader.glsl')
+    if keys[K_3]:
+        renderer.setShaders('./shaders/basicVertexShader.glsl',
+                            './shaders/toonFragmentShader.glsl')
+    if keys[K_4]:
+        renderer.setShaders('./shaders/basicVertexShader.glsl',
+                            './shaders/cuttedFragmentShader.glsl')
+    if keys[K_5]:
+        renderer.setShaders('./shaders/basicVertexShader.glsl',
+                            './shaders/pixelateFragmentShader.glsl')
+
+    if autoRotate:
+        MococoAbyssgardModel.rotation.y += deltaTime * rotationSpeed
+
     if keys[K_a]:
-        renderer.camPosition.x -= 5 * deltaTime
-    if keys[K_q]:
-        renderer.camPosition.y += 5 * deltaTime
-    if keys[K_e]:
-        renderer.camPosition.y -= 5 * deltaTime
-    if keys[K_s]:
-        renderer.camPosition.z += 5 * deltaTime
-    if keys[K_w]:
-        renderer.camPosition.z -= 5 * deltaTime
+        MococoAbyssgardModel.rotation.y -= deltaTime * rotationSpeed * 4
+    if keys[K_d]:
+        MococoAbyssgardModel.rotation.y += deltaTime * rotationSpeed * 4
 
-    # mouseX, mouseY = pygame.mouse.get_rel()
-    # renderer.camRotation.y -= mouseX * deltaTime
-    # renderer.camRotation.x -= mouseY * deltaTime
+    if keys[K_UP]:
+        rotationSpeed += 4
+    if keys[K_DOWN]:
+        rotationSpeed -= 4
 
-    # constant rotation
-    # triangleBuffer.rotation.y += 45 * deltaTime
+    # Use mouse position to
+    mouse_x, mouse_y = pygame.mouse.get_rel()
+    if pygame.mouse.get_pressed()[0]:
+        renderer.lightPos.x += mouse_x * 3
+        renderer.lightPos.y -= mouse_y * 3
 
     renderer.update()
     renderer.render()
