@@ -48,13 +48,13 @@ rotationSpeed = 1
 
 # Define the radius of the circular movement and the zoom limits
 radius = 30
-zoom_min = 15
+zoom_min = 3
 zoom_max = 30
 zoom_speed = 1.5
 
 # Define the vertical movement limits
-vertical_min = -50
-vertical_max = 50
+vertical_min = -4.5
+vertical_max = 4.4
 
 # Define the initial camera position
 renderer.camPosition = glm.vec3(0, 0, radius)
@@ -83,8 +83,13 @@ while isRunning:
             renderer.toggleFillMode()
         if event.type == MOUSEWHEEL:
             # Update the zoom level based on the mouse wheel movement
+            # Damp speed based on zoom level
+            zoom_speed = zoom / radius
             zoom += event.y * zoom_speed
             zoom = max(min(zoom, zoom_max), zoom_min)
+
+    # damp rotation speed based on zoom level
+    rotationSpeed = zoom / radius
 
     # Get the mouse movement
     mouse_dx, mouse_dy = pygame.mouse.get_rel()
@@ -94,7 +99,7 @@ while isRunning:
     # Update the camera's vertical angle based on the mouse y movement
 
     # Update the vertical angle based on the mouse y movement
-    vertical_angle += mouse_dy * deltaTime * rotationSpeed * 10
+    vertical_angle += mouse_dy * deltaTime * rotationSpeed * 2
     vertical_angle = max(min(vertical_angle, vertical_max), vertical_min)
 
     # Calculate the camera position for circular movement
@@ -103,11 +108,13 @@ while isRunning:
         radius * glm.cos(renderer.camRotation.y)
     renderer.camPosition.z = MococoAbyssgardModel.position.z + \
         radius * glm.sin(renderer.camRotation.y)
-    renderer.camPosition.y = vertical_angle
 
     # Update the camera's position based on the zoom level
     renderer.camPosition = MococoAbyssgardModel.position + \
         (renderer.camPosition - MococoAbyssgardModel.position) * zoom / radius
+
+    renderer.target.y = vertical_angle
+    renderer.camPosition.y = vertical_angle
 
     renderer.update()
     renderer.render()
@@ -115,3 +122,8 @@ while isRunning:
 
 
 pygame.quit()
+
+# TODO: mouse actions only on grab
+# TODO: enable or disable damping
+# TODO: enable or disable mouse visibility
+# TODO: enable or disable automatic rotation model

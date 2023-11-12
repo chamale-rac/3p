@@ -70,10 +70,9 @@ class Renderer(object):
             self.activeShader = None
 
     def update(self) -> None:
+
         self.viewMatrix = glm.lookAt(
             self.camPosition, self.target, glm.vec3(0, 1, 0))
-
-        # self.viewMatrix = self.getViewMatrix()
 
     def render(self) -> None:
         glClearColor(*self.clearColor)
