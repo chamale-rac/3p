@@ -1,5 +1,5 @@
 import pygame
-from pygame.locals import *
+from pygame.locals import *  # type: ignore
 import glm
 from model import Model
 from object import ObjectLoader
@@ -42,11 +42,29 @@ renderer.lightPos = glm.vec3(1052, 0, 401)
 pygame.mouse.set_visible(True)
 pygame.event.set_grab(False)
 
-rotationSpeed = 20
-
-autoRotate = False
-
 isRunning = True
+
+rotationSpeed = 1
+
+# Define the radius of the circular movement and the zoom limits
+radius = 30
+zoom_min = 15
+zoom_max = 30
+zoom_speed = 1.5
+
+# Define the vertical movement limits
+vertical_min = -50
+vertical_max = 50
+
+# Define the initial camera position
+renderer.camPosition = glm.vec3(0, 0, radius)
+
+# Define the initial vertical angle
+vertical_angle = 0
+
+# Define the initial zoom level
+zoom = radius
+
 while isRunning:
     keys = pygame.key.get_pressed()
 
@@ -63,49 +81,33 @@ while isRunning:
             isRunning = False
         if event.type == KEYDOWN and event.key == K_f:
             renderer.toggleFillMode()
-        # R enable or disable auto rotation
-        if event.type == KEYDOWN and event.key == K_r:
-            autoRotate = not autoRotate
-        # Z reset light position x and y
-        if event.type == KEYDOWN and event.key == K_z:
-            renderer.lightPos.x = 1052
-            renderer.lightPos.y = 0
+        if event.type == MOUSEWHEEL:
+            # Update the zoom level based on the mouse wheel movement
+            zoom += event.y * zoom_speed
+            zoom = max(min(zoom, zoom_max), zoom_min)
 
-    # Change shaders based on key pressed 1, 2, 3...
-    if keys[K_1]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/basicFragmentShader.glsl')
-    if keys[K_2]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/partyFragmentShader.glsl')
-    if keys[K_3]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/toonFragmentShader.glsl')
-    if keys[K_4]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/cuttedFragmentShader.glsl')
-    if keys[K_5]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/pixelateFragmentShader.glsl')
+    # Get the mouse movement
+    mouse_dx, mouse_dy = pygame.mouse.get_rel()
 
-    if autoRotate:
-        MococoAbyssgardModel.rotation.y += deltaTime * rotationSpeed
+    # Update the camera's horizontal angle based on the mouse x movement
+    renderer.camRotation.y += mouse_dx * deltaTime * rotationSpeed
+    # Update the camera's vertical angle based on the mouse y movement
 
-    if keys[K_a]:
-        MococoAbyssgardModel.rotation.y -= deltaTime * rotationSpeed * 4
-    if keys[K_d]:
-        MococoAbyssgardModel.rotation.y += deltaTime * rotationSpeed * 4
+    # Update the vertical angle based on the mouse y movement
+    vertical_angle += mouse_dy * deltaTime * rotationSpeed * 10
+    vertical_angle = max(min(vertical_angle, vertical_max), vertical_min)
 
-    if keys[K_UP]:
-        rotationSpeed += 4
-    if keys[K_DOWN]:
-        rotationSpeed -= 4
+    # Calculate the camera position for circular movement
+    # Calculate the camera position for circular movement
+    renderer.camPosition.x = MococoAbyssgardModel.position.x + \
+        radius * glm.cos(renderer.camRotation.y)
+    renderer.camPosition.z = MococoAbyssgardModel.position.z + \
+        radius * glm.sin(renderer.camRotation.y)
+    renderer.camPosition.y = vertical_angle
 
-    # Use mouse position to
-    mouse_x, mouse_y = pygame.mouse.get_rel()
-    if pygame.mouse.get_pressed()[0]:
-        renderer.lightPos.x += mouse_x * 3
-        renderer.lightPos.y -= mouse_y * 3
+    # Update the camera's position based on the zoom level
+    renderer.camPosition = MococoAbyssgardModel.position + \
+        (renderer.camPosition - MococoAbyssgardModel.position) * zoom / radius
 
     renderer.update()
     renderer.render()
