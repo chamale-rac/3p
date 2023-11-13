@@ -70,7 +70,6 @@ class Renderer(object):
             self.activeShader = None
 
     def update(self) -> None:
-
         self.viewMatrix = glm.lookAt(
             self.camPosition, self.target, glm.vec3(0, 1, 0))
 
@@ -96,6 +95,10 @@ class Renderer(object):
                 # send light position to shader
                 glUniform3fv(glGetUniformLocation(self.activeShader,
                                                   'lightPos'), 1, glm.value_ptr(self.lightPos))
+
+                # send camera position to shader
+                glUniform3fv(glGetUniformLocation(self.activeShader,
+                                                  'camPos'), 1, glm.value_ptr(self.camPosition))
                 # send time
                 glUniform1f(glGetUniformLocation(self.activeShader,
                             'time'), self.elapsedTime)
