@@ -4,7 +4,7 @@ import glm
 from model import Model
 from object import ObjectLoader
 from shaders import fragment_shader, vertex_shader, cel_fragment_shader
-
+from OpenGL.GL import *
 from gl import Renderer
 
 width = 1080
@@ -33,7 +33,7 @@ MococoAbyssgardModel.position.z = -15
 MococoAbyssgardModel.position.y = -5
 MococoAbyssgardModel.scale = glm.vec3(3, 3, 3)
 
-renderer.sceneObjects.append(MococoAbyssgardModel)
+renderer.sceneObjects = [MococoAbyssgardModel]
 renderer.target.z = -15
 renderer.target.y = 0
 
@@ -101,22 +101,84 @@ while isRunning:
             zoom_speed = zoom / radius
             zoom += event.y * zoom_speed * deltaTime * 35
             zoom = max(min(zoom, zoom_max), zoom_min)
+        # Letter 1 to 5 to change the fragment shader
+        if event.type == KEYDOWN and event.key == K_1:
+            renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                './shaders/basicFragmentShader.glsl')
+        if event.type == KEYDOWN and event.key == K_2:
+            renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                './shaders/partyFragmentShader.glsl')
+        if event.type == KEYDOWN and event.key == K_3:
+            renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                './shaders/toonFragmentShader.glsl')
+        if event.type == KEYDOWN and event.key == K_4:
+            renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                './shaders/cuttedFragmentShader.glsl')
+        if event.type == KEYDOWN and event.key == K_5:
+            renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                './shaders/pixelateFragmentShader.glsl')
 
-    if keys[K_1]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/basicFragmentShader.glsl')
-    if keys[K_2]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/partyFragmentShader.glsl')
-    if keys[K_3]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/toonFragmentShader.glsl')
-    if keys[K_4]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/cuttedFragmentShader.glsl')
-    if keys[K_5]:
-        renderer.setShaders('./shaders/basicVertexShader.glsl',
-                            './shaders/pixelateFragmentShader.glsl')
+        # u,i,o,p to change the model
+        if event.type == KEYDOWN and event.key == K_u:
+            MococoAbyssgardObj = loader.loadObject(
+                "./assets/models/MococoAbyssgard.obj")
+            MococoAbyssgardModel = Model(MococoAbyssgardObj)  # type: ignore
+            loader.cleanUp()
+
+            MococoAbyssgardModel.loadTexture(
+                "./assets/textures/MococoAbyssgard.png")
+
+            MococoAbyssgardModel.position.z = -15
+            MococoAbyssgardModel.position.y = -5
+            MococoAbyssgardModel.scale = glm.vec3(3, 3, 3)
+
+            renderer.sceneObjects = [MococoAbyssgardModel]
+            renderer.target.z = -15
+            renderer.target.y = 0
+            glEnable(GL_CULL_FACE)
+        if event.type == KEYDOWN and event.key == K_i:
+            Obelisk = loader.loadObject('./assets/models/obelisk.obj')
+            ObeliskModel = Model(Obelisk)  # type: ignore
+            loader.cleanUp()
+
+            ObeliskModel.loadTexture('./assets/textures/obelisk.png')
+            ObeliskModel.position.z = -15
+            ObeliskModel.position.y = -5
+            ObeliskModel.scale = glm.vec3(2, 2, 2)
+
+            renderer.sceneObjects = [ObeliskModel]
+            renderer.target.z = -15
+            renderer.target.y = 0
+            glEnable(GL_CULL_FACE)
+        if event.type == KEYDOWN and event.key == K_o:
+            Chicken = loader.loadObject('./assets/models/chicken.obj')
+            ChickenModel = Model(Chicken)  # type: ignore
+            loader.cleanUp()
+
+            ChickenModel.loadTexture('./assets/textures/chiken.png')
+            ChickenModel.position.z = -15
+            ChickenModel.position.y = -1
+            ChickenModel.scale = glm.vec3(2, 2, 2)
+
+            renderer.sceneObjects = [ChickenModel]
+            renderer.target.z = -15
+            renderer.target.y = 0
+            glDisable(GL_CULL_FACE)
+        if event.type == KEYDOWN and event.key == K_p:
+            JustAGirl = loader.loadObject('./assets/models/JustAGirl.obj')
+            JustAGirlModel = Model(JustAGirl)  # type: ignore
+            loader.cleanUp()
+
+            JustAGirlModel.loadTexture(
+                './assets/textures/lambert7SG_baseColor.png')
+            JustAGirlModel.position.z = -15
+            JustAGirlModel.position.y = -5
+            JustAGirlModel.scale = glm.vec3(2, 2, 2)
+
+            renderer.sceneObjects = [JustAGirlModel]
+            renderer.target.z = -15
+            renderer.target.y = 0
+            glEnable(GL_CULL_FACE)
 
     # damp rotation speed based on zoom level
     rotationSpeed = zoom / radius

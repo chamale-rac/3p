@@ -13,7 +13,6 @@ class Renderer(object):
         self.lightPos = glm.vec3(0, 0, 0)
 
         glEnable(GL_DEPTH_TEST)
-        glEnable(GL_CULL_FACE)
 
         glViewport(0, 0, self.width, self.height)
 
