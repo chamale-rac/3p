@@ -11,7 +11,6 @@ width = 1080
 height = 720
 
 pygame.init()
-
 screen = pygame.display.set_mode(
     (width, height), pygame.OPENGL | pygame.DOUBLEBUF)
 clock = pygame.time.Clock()
@@ -24,6 +23,20 @@ skyboxDayTextures = ['./assets/skybox/day/right.jpg',
                      './assets/skybox/day/bottom.jpg',
                      './assets/skybox/day/front.jpg',
                      './assets/skybox/day/back.jpg']
+
+skyboxWinterTextures = ['./assets/skybox/winter/right.png',
+                        './assets/skybox/winter/left.png',
+                        './assets/skybox/winter/top.png',
+                        './assets/skybox/winter/bottom.png',
+                        './assets/skybox/winter/front.png',
+                        './assets/skybox/winter/back.png']
+
+skyboxNightTextures = ['./assets/skybox/night/right.png',
+                       './assets/skybox/night/left.png',
+                       './assets/skybox/night/top.png',
+                       './assets/skybox/night/bottom.png',
+                       './assets/skybox/night/front.png',
+                       './assets/skybox/night/back.png']
 
 renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
                       './shaders/skyboxFragmentShader.glsl',
@@ -69,6 +82,7 @@ HomeModel.scale = glm.vec3(3, 3, 3)
 
 modelIdx = 0
 shaderIdx = 0
+skyboxIdx = 0
 
 renderer.sceneObjects = [MococoAbyssgardModel]
 renderer.target.z = -15
@@ -118,6 +132,11 @@ def rotate_point(x, y, cx, cy, angle):
     new_y = cy + dx * glm.sin(angle) + dy * glm.cos(angle)
     return new_x, new_y
 
+
+renderer.setShaders('./shaders/basicVertexShader.glsl',
+                    './shaders/partyFragmentShader.glsl')
+renderer.setShaders('./shaders/basicVertexShader.glsl',
+                    './shaders/basicFragmentShader.glsl')
 
 while isRunning:
     keys = pygame.key.get_pressed()
@@ -175,6 +194,30 @@ while isRunning:
                 renderer.setShaders('./shaders/reflectionVertexShader.glsl',
                                     './shaders/refractFragmentShader.glsl')
                 shaderIdx = 6
+
+        if event.type == KEYDOWN and event.key == K_j:
+            if skyboxIdx != 0:
+                renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
+                                      './shaders/skyboxFragmentShader.glsl',
+                                      skyboxDayTextures)
+                skyboxIdx = 0
+        if event.type == KEYDOWN and event.key == K_k:
+            if skyboxIdx != 1:
+                renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
+                                      './shaders/skyboxFragmentShader.glsl',
+                                      skyboxWinterTextures)
+                skyboxIdx = 1
+        if event.type == KEYDOWN and event.key == K_l:
+            if skyboxIdx != 2:
+                renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
+                                      './shaders/skyboxFragmentShader.glsl',
+                                      skyboxNightTextures)
+                skyboxIdx = 2
+        # quit with h
+        if event.type == KEYDOWN and event.key == K_h:
+            if skyboxIdx != 3:
+                renderer.createSkybox()
+                skyboxIdx = 3
 
         # u,i,o,p to change the model
         if event.type == KEYDOWN and event.key == K_u:
