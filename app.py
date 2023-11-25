@@ -1,48 +1,143 @@
 import pygame
-from pygame.locals import *
+from pygame.locals import *  # type: ignore
 import glm
 from model import Model
-from shaders import fragment_shader, vertex_shader
-
+from object import ObjectLoader
+from shaders import fragment_shader, vertex_shader, cel_fragment_shader
+from OpenGL.GL import *  # type: ignore
 from gl import Renderer
 
-width = 960
-height = 540
+width = 1080
+height = 720
 
 pygame.init()
-
 screen = pygame.display.set_mode(
     (width, height), pygame.OPENGL | pygame.DOUBLEBUF)
 clock = pygame.time.Clock()
 
 renderer = Renderer(screen)
 
-renderer.setShaders(vertex_shader, fragment_shader)
+skyboxDayTextures = ['./assets/skybox/day/right.jpg',
+                     './assets/skybox/day/left.jpg',
+                     './assets/skybox/day/top.jpg',
+                     './assets/skybox/day/bottom.jpg',
+                     './assets/skybox/day/front.jpg',
+                     './assets/skybox/day/back.jpg']
 
-triangle = [
-    # X, Y, Z, R, G, B, U, V
-    -0.5, -0.5, 0.0, 1, 0.0, 0.0, 0.0, 0.0,
-    -0.5,  0.5, 0.0, 0.0, 1, 0.0, 0.0, 1.0,
-    0.5, -0.5, 0.0, 0.0, 0.0, 1, 1.0, 0.0,
+skyboxWinterTextures = ['./assets/skybox/winter/right.png',
+                        './assets/skybox/winter/left.png',
+                        './assets/skybox/winter/top.png',
+                        './assets/skybox/winter/bottom.png',
+                        './assets/skybox/winter/front.png',
+                        './assets/skybox/winter/back.png']
 
-    -0.5, 0.5, 0.0, 0.0, 1, 0.0, 0.0, 1.0,
-    0.5, 0.5, 0.0, 0.0, 1, 1, 1.0, 1.0,
-    0.5, -0.5, 0.0, 0.0, 0.0, 1, 1.0, 0.0,
-]
+skyboxNightTextures = ['./assets/skybox/night/right.png',
+                       './assets/skybox/night/left.png',
+                       './assets/skybox/night/top.png',
+                       './assets/skybox/night/bottom.png',
+                       './assets/skybox/night/front.png',
+                       './assets/skybox/night/back.png']
 
-triangleBuffer = Model(triangle)
-triangleBuffer.loadTexture("./texture.jpg")  # TODO: download this texture
+renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
+                      './shaders/skyboxFragmentShader.glsl',
+                      skyboxDayTextures)
 
-triangleBuffer.position.z = -10
-triangleBuffer.scale = glm.vec3(3, 3, 3)
+renderer.setShaders('./shaders/basicVertexShader.glsl',
+                    './shaders/basicFragmentShader.glsl')
 
-renderer.sceneObjects.append(triangleBuffer)
+loader = ObjectLoader()
+
+# MODEL 1
+MococoAbyssgardObj = loader.loadObject("./assets/models/MococoAbyssgard.obj")
+MococoAbyssgardModel = Model(MococoAbyssgardObj)  # type: ignore
+loader.cleanUp()
+MococoAbyssgardModel.loadTexture("./assets/textures/MococoAbyssgard.png")
+MococoAbyssgardModel.position.z = -15
+MococoAbyssgardModel.position.y = -5
+MococoAbyssgardModel.scale = glm.vec3(3, 3, 3)
+# MODEL 2
+Obelisk = loader.loadObject('./assets/models/obelisk.obj')
+ObeliskModel = Model(Obelisk)  # type: ignore
+loader.cleanUp()
+ObeliskModel.loadTexture('./assets/textures/obelisk.png')
+ObeliskModel.position.z = -15
+ObeliskModel.position.y = -5
+ObeliskModel.scale = glm.vec3(2, 2, 2)
+# MODEL 3
+Chicken = loader.loadObject('./assets/models/chicken.obj')
+ChickenModel = Model(Chicken)  # type: ignore
+loader.cleanUp()
+ChickenModel.loadTexture('./assets/textures/chiken.png')
+ChickenModel.position.z = -15
+ChickenModel.position.y = -1
+ChickenModel.scale = glm.vec3(2, 2, 2)
+# MODEL 4
+Home = loader.loadObject('./assets/models/home.obj')
+HomeModel = Model(Home)  # type: ignore
+loader.cleanUp()
+HomeModel.loadTexture('./assets/textures/home.bmp')
+HomeModel.position.z = -15
+HomeModel.position.y = 0
+HomeModel.scale = glm.vec3(3, 3, 3)
+
+modelIdx = 0
+shaderIdx = 0
+skyboxIdx = 0
+
+renderer.sceneObjects = [MococoAbyssgardModel]
+renderer.target.z = -15
+renderer.target.y = 0
+
+renderer.lightPos = glm.vec3(1052, 0, 401)
 
 
-# pygame.mouse.set_visible(False)
-# pygame.event.set_grab(True)
+pygame.mouse.set_visible(True)
+pygame.event.set_grab(False)
 
 isRunning = True
+
+rotationSpeed = 1
+
+# Define the radius of the circular movement and the zoom limits
+radius = 30
+zoom_min = 3
+zoom_max = 30
+zoom_speed = 1.5
+
+# Define the vertical movement limits
+vertical_min = -4.5
+vertical_max = 4.4
+
+# Define the initial camera position
+renderer.camPosition = glm.vec3(0, 0, radius)
+
+# Define the initial vertical angle
+vertical_angle = 0
+
+# Define the initial zoom level
+zoom = radius
+# Initialize momentum
+momentum_y = 0.0
+momentum_vertical = 0.0
+momentum_decrease = 0.05
+light_radius = 401
+light_rotation_speed = 2  # Adjust the rotation speed as needed
+
+
+def rotate_point(x, y, cx, cy, angle):
+    """Rotate a point (x, y) around a center (cx, cy) by a given angle (in radians)."""
+    dx = x - cx
+    dy = y - cy
+    new_x = cx + dx * glm.cos(angle) - dy * glm.sin(angle)
+    new_y = cy + dx * glm.sin(angle) + dy * glm.cos(angle)
+    return new_x, new_y
+
+
+renderer.setShaders('./shaders/basicVertexShader.glsl',
+                    './shaders/partyFragmentShader.glsl')
+renderer.setShaders('./shaders/basicVertexShader.glsl',
+                    './shaders/basicFragmentShader.glsl')
+
 while isRunning:
     keys = pygame.key.get_pressed()
 
@@ -51,33 +146,169 @@ while isRunning:
     # Set window title to current FPS
     pygame.display.set_caption(f"FPS: {clock.get_fps():.2f}")
 
+    # update elapsedTime
+    renderer.elapsedTime += deltaTime
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             isRunning = False
+        if event.type == KEYDOWN and event.key == K_f:
+            renderer.toggleFillMode()
+        if event.type == MOUSEWHEEL:
+            zoom_speed = zoom / radius
+            zoom += event.y * zoom_speed * deltaTime * 35
+            zoom = max(min(zoom, zoom_max), zoom_min)
+        # Letter 1 to 5 to change the fragment shader
+        if event.type == KEYDOWN and event.key == K_1:
+            if shaderIdx != 0:
+                renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                    './shaders/basicFragmentShader.glsl')
+                shaderIdx = 0
+        if event.type == KEYDOWN and event.key == K_2:
+            if shaderIdx != 1:
+                renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                    './shaders/partyFragmentShader.glsl')
+                shaderIdx = 1
+        if event.type == KEYDOWN and event.key == K_3:
+            if shaderIdx != 2:
+                renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                    './shaders/toonFragmentShader.glsl')
+                shaderIdx = 2
+        if event.type == KEYDOWN and event.key == K_4:
+            if shaderIdx != 3:
+                renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                    './shaders/cuttedFragmentShader.glsl')
+                shaderIdx = 3
+        if event.type == KEYDOWN and event.key == K_5:
+            if shaderIdx != 4:
+                renderer.setShaders('./shaders/basicVertexShader.glsl',
+                                    './shaders/pixelateFragmentShader.glsl')
+                shaderIdx = 4
+        if event.type == KEYDOWN and event.key == K_6:
+            if shaderIdx != 5:
+                renderer.setShaders('./shaders/reflectionVertexShader.glsl',
+                                    './shaders/reflectionFragmentShader.glsl')
+                shaderIdx = 5
+        if event.type == KEYDOWN and event.key == K_7:
+            if shaderIdx != 6:
+                renderer.setShaders('./shaders/reflectionVertexShader.glsl',
+                                    './shaders/refractFragmentShader.glsl')
+                shaderIdx = 6
 
-    if keys[K_d]:
-        renderer.camPosition.x += 5 * deltaTime
+        if event.type == KEYDOWN and event.key == K_j:
+            if skyboxIdx != 0:
+                renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
+                                      './shaders/skyboxFragmentShader.glsl',
+                                      skyboxDayTextures)
+                skyboxIdx = 0
+        if event.type == KEYDOWN and event.key == K_k:
+            if skyboxIdx != 1:
+                renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
+                                      './shaders/skyboxFragmentShader.glsl',
+                                      skyboxWinterTextures)
+                skyboxIdx = 1
+        if event.type == KEYDOWN and event.key == K_l:
+            if skyboxIdx != 2:
+                renderer.createSkybox('./shaders/skyboxVertexShader.glsl',
+                                      './shaders/skyboxFragmentShader.glsl',
+                                      skyboxNightTextures)
+                skyboxIdx = 2
+        # quit with h
+        if event.type == KEYDOWN and event.key == K_h:
+            if skyboxIdx != 3:
+                renderer.createSkybox()
+                skyboxIdx = 3
+
+        # u,i,o,p to change the model
+        if event.type == KEYDOWN and event.key == K_u:
+            if modelIdx != 0:
+                renderer.sceneObjects = [MococoAbyssgardModel]
+                renderer.target.z = -15
+                renderer.target.y = 0
+                glEnable(GL_CULL_FACE)
+                modelIdx = 0
+        if event.type == KEYDOWN and event.key == K_i:
+            if modelIdx != 1:
+                renderer.sceneObjects = [ObeliskModel]
+                renderer.target.z = -15
+                renderer.target.y = 0
+                glEnable(GL_CULL_FACE)
+                modelIdx = 1
+        if event.type == KEYDOWN and event.key == K_o:
+            if modelIdx != 2:
+                renderer.sceneObjects = [ChickenModel]
+                renderer.target.z = -15
+                renderer.target.y = 0
+                glDisable(GL_CULL_FACE)
+                modelIdx = 2
+        if event.type == KEYDOWN and event.key == K_p:
+            if modelIdx != 3:
+                renderer.sceneObjects = [HomeModel]
+                renderer.target.z = -15
+                renderer.target.y = 0
+                glEnable(GL_CULL_FACE)
+                modelIdx = 3
+
+    # damp rotation speed based on zoom level
+    rotationSpeed = zoom / radius
+    maxRotationSpeed = 1.5
+    rotationSpeed = min(rotationSpeed, maxRotationSpeed)
+
+    # Get the mouse movement
+    mouse_dx, mouse_dy = pygame.mouse.get_rel()
+    if pygame.mouse.get_pressed()[0]:
+        # Update momentum along with camRotation.y and vertical_angle
+        momentum_y += mouse_dx / 10 * deltaTime * rotationSpeed
+        momentum_vertical += mouse_dy / 10 * deltaTime * rotationSpeed * 2
+    else:
+        # Decrease momentum
+        momentum_y *= (1 - momentum_decrease)
+        momentum_vertical *= (1 - momentum_decrease)
+    maxMomentum = 0.25
+    # momentum_y must be in range [-maxMomentum, maxMomentum]
+    momentum_y = max(min(momentum_y, maxMomentum), -maxMomentum)
+
+    # Add momentum to camRotation.y and vertical_angle
+    renderer.camRotation.y += momentum_y
+    vertical_angle += momentum_vertical
+    vertical_angle = max(min(vertical_angle, vertical_max), vertical_min)
+
+    # Calculate the camera position for circular movement
+    # Calculate the camera position for circular movement
+    renderer.camPosition.x = MococoAbyssgardModel.position.x + \
+        radius * glm.cos(renderer.camRotation.y)
+    renderer.camPosition.z = MococoAbyssgardModel.position.z + \
+        radius * glm.sin(renderer.camRotation.y)
+
+    renderer.target.y = vertical_angle
+    renderer.camPosition.y = vertical_angle
+
+    renderer.camPosition.x = MococoAbyssgardModel.position.x + \
+        (renderer.camPosition.x - MococoAbyssgardModel.position.x) * zoom / radius
+    renderer.camPosition.z = MococoAbyssgardModel.position.z + \
+        (renderer.camPosition.z - MococoAbyssgardModel.position.z) * zoom / radius
+
     if keys[K_a]:
-        renderer.camPosition.x -= 5 * deltaTime
-    if keys[K_q]:
-        renderer.camPosition.y += 5 * deltaTime
-    if keys[K_e]:
-        renderer.camPosition.y -= 5 * deltaTime
-    if keys[K_s]:
-        renderer.camPosition.z += 5 * deltaTime
+        # Rotate the light position around the model
+        renderer.lightPos.x, renderer.lightPos.y = rotate_point(
+            renderer.lightPos.x, renderer.lightPos.y, MococoAbyssgardModel.position.x, MococoAbyssgardModel.position.y, light_rotation_speed * deltaTime)
+    if keys[K_d]:
+        renderer.lightPos.x, renderer.lightPos.y = rotate_point(
+            renderer.lightPos.x, renderer.lightPos.y, MococoAbyssgardModel.position.x, MococoAbyssgardModel.position.y, -light_rotation_speed * deltaTime)
     if keys[K_w]:
-        renderer.camPosition.z -= 5 * deltaTime
+        renderer.lightPos.x, renderer.lightPos.z = rotate_point(
+            renderer.lightPos.x, renderer.lightPos.z, MococoAbyssgardModel.position.x, MococoAbyssgardModel.position.z, light_rotation_speed * deltaTime)
+    if keys[K_s]:
+        renderer.lightPos.x, renderer.lightPos.z = rotate_point(
+            renderer.lightPos.x, renderer.lightPos.z, MococoAbyssgardModel.position.x, MococoAbyssgardModel.position.z, -light_rotation_speed * deltaTime)
 
-    # Mouse rotation
-    # mouseX, mouseY = pygame.mouse.get_rel()
-    # renderer.camRotation.y -= mouseX * deltaTime
-    # renderer.camRotation.x -= mouseY * deltaTime
-
-    # constant rotation
-    # triangleBuffer.rotation.y += 45 * deltaTime
-
+    renderer.update()
     renderer.render()
     pygame.display.flip()
 
 
 pygame.quit()
+
+# TODO: enable or disable damping
+# TODO: enable or disable mouse visibility
+# TODO: enable or disable automatic rotation model
