@@ -159,6 +159,11 @@ while isRunning:
             zoom += event.y * zoom_speed * deltaTime * 35
             zoom = max(min(zoom, zoom_max), zoom_min)
         # Letter 1 to 5 to change the fragment shader
+        if event.type == KEYDOWN and event.key == K_0:
+            if modelIdx != -1:
+                renderer.sceneObjects = []
+                modelIdx = -1
+
         if event.type == KEYDOWN and event.key == K_1:
             if shaderIdx != 0:
                 renderer.setShaders('./shaders/basicVertexShader.glsl',
