@@ -120,7 +120,7 @@ class Renderer(object):
 
             obj.render()
 
-    def createSkybox(self, vertexShader: str, fragmentShader: str, textureList: list = [], ) -> None:
+    def createSkybox(self, vertexShader=None, fragmentShader=None, textureList: list = [], ) -> None:
         skyboxVertices: list = [
             -1.0,  1.0, -1.0,
             -1.0, -1.0, -1.0,
@@ -170,12 +170,6 @@ class Renderer(object):
         self.skyboxVBO = glGenBuffers(1)  # Vertex Model Object
 
         self.skyboxVAO = glGenVertexArrays(1)  #
-
-        with open(vertexShader, 'r') as f:
-            vertex_src = f.readlines()
-
-        with open(fragmentShader, 'r') as f:
-            fragment_src = f.readlines()
 
         if vertexShader != None and fragmentShader != None:
             with open(vertexShader, 'r') as f:
